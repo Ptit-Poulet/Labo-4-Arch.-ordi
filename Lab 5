@@ -1,0 +1,23 @@
+static inline void enter_state(light_state_t s) {
+    current_state = s;
+    switch (s) {
+        case STATE_GREEN:
+            gpio_set_green(true);
+            gpio_set_yellow(false);
+            gpio_set_red(false);
+            ticks_remaining = green_time_s * TICKS_PER_SECOND;
+            break;
+        case STATE_YELLOW:
+            gpio_set_green(false);
+            gpio_set_yellow(true);
+            gpio_set_red(false);
+            ticks_remaining = yellow_time_s * TICKS_PER_SECOND;
+            break;
+        case STATE_RED:
+            gpio_set_green(false);
+            gpio_set_yellow(false);
+            gpio_set_red(true);
+            ticks_remaining = red_time_s * TICKS_PER_SECOND;
+            break;
+    }
+}
