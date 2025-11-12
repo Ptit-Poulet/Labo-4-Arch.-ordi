@@ -27,7 +27,7 @@
 */
 #define GREEN_TICKS   1000u   /* ~10 s */
 #define YELLOW_TICKS  300u    /* ~3 s  */
-#define RED_TICKS     1500u   /* ~15 s */
+#define RED_TICKS     15000u   /* ~15 s */
 
 /* ====== minimal additions: enum + targets ====== */
 typedef enum { STATE_GREEN, STATE_YELLOW, STATE_RED } light_state_t;
@@ -72,12 +72,12 @@ static inline void advance_state(void) {
             break;
     }
     drive_outputs(current_state);
-    tick_count = 0;  // just like the original: reset counter on each period end
+    tick_count = 0; 
 }
 
 void interrupts_init(void) {
-    IRQ_ENABLE1 = SYS_TIMER_MATCH1_IRQ;  // same pattern as original
-    // Make outputs valid at startup and preload target
+    IRQ_ENABLE1 = SYS_TIMER_MATCH1_IRQ;  
+  
     current_state = STATE_GREEN;
     target_ticks = GREEN_TICKS;
     tick_count = 0;
@@ -87,77 +87,15 @@ void interrupts_init(void) {
 void irq_handler(void) {
     if (IRQ_PENDING1 & SYS_TIMER_MATCH1_IRQ) {
         if (TIMER_CS & CS_M1) {
-            TIMER_CS = CS_M1;      // ack
-            tick_count++;          // same style as the original
+            TIMER_CS = CS_M1;      
+            tick_count++;         
             if (tick_count >= target_ticks) {
-                advance_state();   // move to next light, reload target, reset count
+                advance_state();   
             }
-            timer_schedule_next(); // re-arm timer (unchanged)
+            timer_schedule_next(); 
         }
         return;
     }
 }
 
-#####
-
-
-
-
-#include <stdint.h>
-#include <stdbool.h>
-#include "gpio.h"
-#include "uart.h"
-/* File to initialise all the pins, I think */
-#define PERIPH_BASE      0x3F000000UL
-#define GPIO_BASE       (PERIPH_BASE + 0x200000)
-
-#define GPFSEL0         (*(volatile uint32_t*)(GPIO_BASE + 0x00))
-#define GPFSEL1         (*(volatile uint32_t*)(GPIO_BASE + 0x04))
-#define GPFSEL2         (*(volatile uint32_t*)(GPIO_BASE + 0x08))
-#define GPSET0          (*(volatile uint32_t*)(GPIO_BASE + 0x1C))
-#define GPCLR0          (*(volatile uint32_t*)(GPIO_BASE + 0x28))
-
-#define PIN_RED         17u
-#define PIN_YELLOW      27u
-#define PIN_GREEN       22u
-
-static inline void gpio_set_output(uint32_t pin) {
-    volatile uint32_t* gpfsel;
-    uint32_t shift = (pin % 10u) * 3u;
-    if (pin < 10u) gpfsel = &GPFSEL0;
-    else if (pin < 20u) gpfsel = &GPFSEL1;
-    else gpfsel = &GPFSEL2;
-    uint32_t val = *gpfsel;
-    val &= ~(0x7u << shift);
-    val |=  (0x1u << shift);
-    *gpfsel = val;
-
-    uart_debug_gpio_set_output(pin);
-}
-
-static inline void gpio_write(uint32_t pin, bool on) {
-    if (on) GPSET0 = (1u << pin);
-    else    GPCLR0 = (1u << pin);
-
-    uart_debug_gpio_write(pin, on);
-}
-
-void gpio_init(void) {
-    uart_debug_gpio_init(PIN_RED);
-    gpio_set_output(PIN_RED);
-    gpio_write(PIN_RED, false);
-
-    uart_debug_gpio_init(PIN_YELLOW);
-    gpio_set_output(PIN_YELLOW);
-    gpio_write(PIN_YELLOW, false);
-
-    uart_debug_gpio_init(PIN_GREEN);
-    gpio_set_output(PIN_GREEN);
-    gpio_write(PIN_GREEN, false);
-}
-
-void gpio_set_red(bool on)   { gpio_write(PIN_RED, on); }
-void gpio_set_yellow(bool on)   { gpio_write(PIN_YELLOW, on); }
-void gpio_set_green(bool on)   { gpio_write(PIN_GREEN, on); }
-
-
+fonctionne, mais le timer est pas bon
