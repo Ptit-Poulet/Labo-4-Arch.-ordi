@@ -21,3 +21,21 @@ static inline void enter_state(light_state_t s) {
             break;
     }
 }
+
+
+
+if (TIMER_CS & CS_M1) {
+    TIMER_CS = CS_M1;          // acknowledge the timer match
+    if (ticks_remaining > 0) { // one 10 ms tick elapsed
+        --ticks_remaining;
+    }
+    if (ticks_remaining == 0) { // time to switch to the next light
+        switch (current_state) {
+            case STATE_GREEN:  enter_state(STATE_YELLOW); break;
+            case STATE_YELLOW: enter_state(STATE_RED);    break;
+            case STATE_RED:    enter_state(STATE_GREEN);  break;
+        }
+    }
+    timer_schedule_next();     // arm the next 10 ms tick
+}
+
