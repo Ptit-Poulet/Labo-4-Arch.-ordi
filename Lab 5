@@ -20,11 +20,12 @@
 #define SYS_TIMER_BASE    (PERIPH_BASE + 0x003000)
 #define TIMER_CS          (*(volatile uint32_t*)(SYS_TIMER_BASE + 0x00))
 #define CS_M1             (1u << 1)
+
 #define TICKS_PER_SECOND 100u
 
-static uint32_t tick_count_r = 15;
-static uint32_t tick_count_y = 3;
-static uint32_t tick_count_g = 10;
+static uint32_t tick_count_r = 15u;
+static uint32_t tick_count_y = 3u;
+static uint32_t tick_count_g = 10u;
 
 typedef enum {GREEN, YELLOW, RED} light_t;
 static light_t current_state = GREEN;
@@ -80,3 +81,4 @@ void irq_handler(void) {
     }
 }
 
+programme ne fait que l'initialisation des pin puis le case de green une fois puis ce stop.
